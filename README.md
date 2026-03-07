@@ -74,11 +74,11 @@ print("Setup OK")
 ### Cellule 2 — Reproduction minimale Vicuna (5 tâches)
 
 ```python
-# P100 (16 GB) — quantification 4-bit obligatoire
-%run /kaggle/working/negativePrompts/run_vicuna_5tasks.py --quantize
+# T4×2 (32 GB) — fp16 natif, recommandé (meilleure qualité)
+%run /kaggle/working/negativePrompts/run_vicuna_5tasks.py
 
-# T4×2 (32 GB) — fp16 natif
-# %run /kaggle/working/negativePrompts/run_vicuna_5tasks.py
+# P100 / T4 simple (16 GB) — quantification 4-bit
+# %run /kaggle/working/negativePrompts/run_vicuna_5tasks.py --quantize
 ```
 
 ### Cellule 3 — Voir les résultats
