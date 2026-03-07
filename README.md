@@ -1,100 +1,108 @@
-# NegativePrompt
-Code release for [NegativePrompt: Leveraging Psychology for Large Language Models Enhancement via Negative Emotional Stimuli](https://arxiv.org/abs/2405.02814) (IJCAI 2024)
+# NegativePrompt — Reproduction & Extension (PPD M2)
 
-## Modèles utilisés
+Reproduction et extension de [NegativePrompt: Leveraging Psychology for Large Language Models Enhancement via Negative Emotional Stimuli](https://arxiv.org/abs/2405.02814) (IJCAI 2024).
 
-| Modèle | Identifiant HuggingFace | GPU requis |
-|--------|------------------------|------------|
-| T5 | `google/flan-t5-large` | ~3 GB VRAM |
-| Vicuna | `lmsys/vicuna-13b-v1.5` | ~28 GB VRAM (fp16) |
-| Llama2 | `meta-llama/Llama-2-13b-chat-hf` | ~28 GB VRAM |
+---
 
-> **Note Vicuna** : Le papier original utilise `vicuna-13b-v1.1` via un serveur FastChat local. Cette version utilise `lmsys/vicuna-13b-v1.5` directement via HuggingFace transformers, ce qui donne des résultats équivalents.
+## Objectifs du projet
 
-> **Note Llama2** : L'accès au modèle `meta-llama/Llama-2-13b-chat-hf` nécessite d'accepter la licence sur HuggingFace puis de se connecter (voir ci-dessous).
+1. **Reproduction minimale** — 5 tâches représentatives, Vicuna-13B, prompt original vs NP01–NP10
+2. **Protocole clair** — tracking automatique (modèle, prompt, paramètres, métrique, score)
+3. **Analyse des stimuli** — effet de chaque stimulus par tâche, clustering
+4. **Sélection automatique du stimulus** — modèle de recommandation du meilleur NP par tâche
+5. **Reformulation des prompts** — amélioration automatique du prompt original
+6. **Extension multi-modèles** — T5, Llama-2, Vicuna (si temps disponible)
+7. **Industrialisation** — pipeline end-to-end (si temps disponible)
 
-## Installation
+---
 
-```sh
-git clone https://github.com/ac2408/negativePrompts
-cd negativePrompts
-```
+## Statut actuel
 
-Créer l'environnement conda :
+- [x] Dépôt fonctionnel, erreurs d'import corrigées
+- [x] Modèles papier intégrés (T5, Vicuna-13B, Llama-2-13B via HuggingFace)
+- [x] Script optimisé Kaggle (modèle chargé une seule fois)
+- [x] Reproduction minimale : 5 tâches × Vicuna × NP00–NP10 avec protocole CSV
+- [ ] Analyse des résultats et clustering
+- [ ] Modèle de sélection automatique du stimulus
+- [ ] Reformulation des prompts
 
-```sh
-conda env create -f environment.yml
-conda activate chatgptTool
-```
+---
 
-Installer les dépendances supplémentaires :
+## Tâches sélectionnées (reproduction minimale)
 
-```sh
-pip install -r requirements.txt
-```
+| Tâche | Type | Métrique |
+|-------|------|---------|
+| `sentiment` | Classification binaire | EM sentiment |
+| `antonyms` | Génération lexicale | EM contain |
+| `translation_en-fr` | Traduction | EM contain |
+| `cause_and_effect` | Raisonnement causal | EM causal |
+| `larger_animal` | Connaissance factuelle | EM animal |
 
-## Lancer sur Kaggle Notebook
+---
+
+## Modèles et GPU requis
+
+| Modèle | HuggingFace | fp16 | 4-bit (P100/T4) |
+|--------|-------------|------|-----------------|
+| T5 | `google/flan-t5-large` | ~3 GB | — |
+| Vicuna | `lmsys/vicuna-13b-v1.5` | ~26 GB (T4×2) | ~7 GB (P100/T4) |
+| Llama-2 | `meta-llama/Llama-2-13b-chat-hf` | ~26 GB (T4×2) | ~7 GB (P100/T4) |
+
+> **P100 (16 GB) et T4 (16 GB)** : utiliser le flag `--quantize` (4-bit bitsandbytes).
+> **T4×2 (32 GB)** : fp16 natif, pas de quantification nécessaire.
+
+---
+
+## Lancer sur Kaggle Notebook (P100 ou T4×2)
+
+### Cellule 1 — Setup (une seule fois par session)
 
 ```python
 import subprocess, os
 
-# Cloner le repo (à lancer une seule fois)
-if not os.path.exists("/kaggle/working/negativePrompts"):
+REPO = "/kaggle/working/negativePrompts"
+if not os.path.exists(REPO):
     subprocess.run(["git", "clone", "-b", "branche_chen",
-                    "https://github.com/ac2408/negativePrompts",
-                    "/kaggle/working/negativePrompts"], check=True)
+                    "https://github.com/agitfirat/negativePrompts", REPO], check=True)
+else:
+    subprocess.run(["git", "-C", REPO, "pull", "origin", "branche_chen"], check=True)
 
-os.chdir("/kaggle/working/negativePrompts")  # chemin absolu, stable entre cellules
-
-# Installer les dépendances
-subprocess.run(["pip", "install", "-r", "requirements.txt", "-q"], check=True)
-
-# Lancer une évaluation T5 (pas besoin de token HuggingFace)
-result = subprocess.run(
-    ["python", "main.py", "--task", "sentiment", "--model", "t5", "--pnum", "0", "--few_shot", "False"],
-    capture_output=True, text=True
-)
-print(result.stdout)
-print(result.stderr)
+subprocess.run(["pip", "install", "-r", f"{REPO}/requirements.txt", "-q"], check=True)
+print("Setup OK")
 ```
 
-Pour Llama-2, ajouter avant le run :
+### Cellule 2 — Reproduction minimale Vicuna (5 tâches)
+
 ```python
-from kaggle_secrets import UserSecretsClient
-from huggingface_hub import login
-login(token=UserSecretsClient().get_secret("HF_TOKEN"))
+# P100 (16 GB) — quantification 4-bit obligatoire
+%run /kaggle/working/negativePrompts/run_vicuna_5tasks.py --quantize
+
+# T4×2 (32 GB) — fp16 natif
+# %run /kaggle/working/negativePrompts/run_vicuna_5tasks.py
 ```
 
-## Prérequis pour Llama-2
+### Cellule 3 — Voir les résultats
 
-Accepter la licence sur https://huggingface.co/meta-llama/Llama-2-13b-chat-hf puis s'authentifier :
-
-```sh
-pip install huggingface_hub
-huggingface-cli login
+```python
+import pandas as pd
+df = pd.read_csv("/kaggle/working/negativePrompts/results/protocol_vicuna.csv")
+print(df.to_string())
 ```
 
-## Usage
+---
 
-```sh
-python main.py --task sentiment --model t5 --pnum 0 --few_shot False
-```
+## Scripts disponibles
 
-**Paramètres :**
-- `--task` : nom de la tâche (ex: `sentiment`, `larger_animal`, `antonyms`, ...)
-- `--model` : `t5`, `vicuna`, `llama2`, `chatgpt`, `gpt4`
-- `--pnum` : `0` = prompt original, `1` à `10` = NP01 à NP10
-- `--few_shot` : `True` ou `False`
+| Script | Description |
+|--------|-------------|
+| `run_vicuna_5tasks.py` | **Reproduction minimale** — Vicuna, 5 tâches, NP00–NP10, protocole CSV |
+| `run_all_kaggle.py` | Toutes les tâches (II + BigBench), tous les modèles |
+| `main.py` | Instruction Induction, une tâche à la fois (CLI) |
+| `main_bigbench.py` | BigBench, une tâche à la fois (CLI) |
 
-**Exemple pour tester tous les prompts négatifs (NP01–NP10) sur sentiment avec T5 :**
+---
 
-```sh
-for i in $(seq 0 10); do
-    python main.py --task sentiment --model t5 --pnum $i --few_shot False
-done
-```
-
-## Tâches disponibles
+## Toutes les tâches disponibles (Instruction Induction)
 
 ```
 active_to_passive, antonyms, cause_and_effect, common_concept, diff,
@@ -104,6 +112,14 @@ second_word_letter, sentence_similarity, sentiment, singular_to_plural,
 sum, synonyms, taxonomy_animal, translation_en-de, translation_en-es,
 translation_en-fr, word_in_context
 ```
+
+---
+
+## Prérequis pour Llama-2
+
+Accepter la licence sur https://huggingface.co/meta-llama/Llama-2-13b-chat-hf puis ajouter `HF_TOKEN` dans Kaggle → Add-ons → Secrets.
+
+---
 
 ## Citation
 

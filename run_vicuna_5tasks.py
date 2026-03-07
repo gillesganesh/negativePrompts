@@ -5,6 +5,10 @@ Taches : 5 taches representatives (zero-shot)
 Prompts : pnum=0 (original) et pnum=1 a 10 (NP01-NP10)
 
 Usage depuis Kaggle :
+    # P100 / T4 (16 GB) — quantification 4-bit obligatoire
+    %run /kaggle/working/negativePrompts/run_vicuna_5tasks.py --quantize
+
+    # T4x2 (32 GB) — fp16 natif
     %run /kaggle/working/negativePrompts/run_vicuna_5tasks.py
 
 Sorties :
@@ -15,17 +19,32 @@ Sorties :
 
 Protocole enregistre pour chaque experience :
     model | task | pnum | original_prompt | negative_stimulus | few_shot
-    temperature | do_sample | max_new_tokens | batch_size | metric | score
+    temperature | do_sample | max_new_tokens | batch_size | quantized | metric | score
 """
 
 import os
 import sys
 import csv
 import shutil
+import argparse
 
 REPO = "/kaggle/working/negativePrompts"
 os.chdir(REPO)
 sys.path.insert(0, REPO)
+
+# ─── Arguments ───────────────────────────────────────────────────────────────
+_parser = argparse.ArgumentParser()
+_parser.add_argument(
+    "--quantize", action="store_true",
+    help="Charger Vicuna en 4-bit (bitsandbytes) pour GPU 16 GB (P100, T4)"
+)
+_parser.add_argument(
+    "--batch_size", type=int, default=None,
+    help="Taille de batch (defaut: 8 avec --quantize, 4 sans)"
+)
+_args, _ = _parser.parse_known_args()
+QUANTIZE   = _args.quantize
+BATCH_SIZE = _args.batch_size if _args.batch_size else (8 if QUANTIZE else 4)
 
 # ─── 5 taches selectionnees (diversite de types) ───────────────────────────
 SELECTED_TASKS = [
@@ -42,8 +61,9 @@ INFER_PARAMS = {
     "do_sample":      False,     # greedy : reproductible et plus rapide
     "temperature":    None,      # non utilise si do_sample=False
     "max_new_tokens": 30,
-    "batch_size":     4,
+    "batch_size":     BATCH_SIZE,
     "few_shot":       False,
+    "quantized":      QUANTIZE,
 }
 
 # Metrique utilisee par tache (depuis utility.py)
@@ -62,15 +82,30 @@ def load_vicuna():
     from transformers import AutoTokenizer, AutoModelForCausalLM
 
     model_id = INFER_PARAMS["model_id"]
-    print(f"Chargement de {model_id} (float16, device_map=auto)...")
     tok = AutoTokenizer.from_pretrained(model_id, use_fast=False)
     tok.pad_token    = tok.eos_token
     tok.padding_side = "left"
-    mdl = AutoModelForCausalLM.from_pretrained(
-        model_id, device_map="auto", torch_dtype=torch.float16
-    )
+
+    if INFER_PARAMS["quantized"]:
+        from transformers import BitsAndBytesConfig
+        bnb_cfg = BitsAndBytesConfig(
+            load_in_4bit=True,
+            bnb_4bit_compute_dtype=torch.float16,
+            bnb_4bit_use_double_quant=True,
+            bnb_4bit_quant_type="nf4",
+        )
+        print(f"Chargement de {model_id} (4-bit NF4, P100/T4 16 GB)...")
+        mdl = AutoModelForCausalLM.from_pretrained(
+            model_id, device_map="auto", quantization_config=bnb_cfg
+        )
+    else:
+        print(f"Chargement de {model_id} (float16, T4x2 32 GB)...")
+        mdl = AutoModelForCausalLM.from_pretrained(
+            model_id, device_map="auto", torch_dtype=torch.float16
+        )
+
     mdl.eval()
-    print("Vicuna charge.")
+    print(f"Vicuna charge. (quantize={INFER_PARAMS['quantized']}, batch_size={INFER_PARAMS['batch_size']})")
     return mdl, tok
 
 
@@ -135,14 +170,13 @@ def init_protocol_csv(path):
             "model", "task", "pnum",
             "original_prompt", "negative_stimulus",
             "few_shot", "do_sample", "temperature",
-            "max_new_tokens", "batch_size",
+            "max_new_tokens", "batch_size", "quantized",
             "metric", "score",
         ])
     return path
 
 
 def append_protocol(path, task, pnum, original_prompt, negative_stimulus, score):
-    from config import Negative_SET
     with open(path, "a", newline="", encoding="utf-8") as f:
         writer = csv.writer(f)
         writer.writerow([
@@ -156,6 +190,7 @@ def append_protocol(path, task, pnum, original_prompt, negative_stimulus, score)
             INFER_PARAMS["temperature"],
             INFER_PARAMS["max_new_tokens"],
             INFER_PARAMS["batch_size"],
+            INFER_PARAMS["quantized"],
             TASK_METRIC[task],
             f"{score:.4f}",
         ])
