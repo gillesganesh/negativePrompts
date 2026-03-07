@@ -6,66 +6,53 @@ Reproduction et extension de [NegativePrompt: Leveraging Psychology for Large La
 
 ---
 
-## Objectifs du projet
-
-| Étape | Description | Statut |
-|-------|-------------|--------|
-| 1 | Sélection de 5 tâches représentatives | ✅ Fait |
-| 2 | Choix du modèle de référence (Vicuna-13B) | ✅ Fait |
-| 3 | Expérience baseline vs NP01–NP10, protocole de tracking | ✅ Fait |
-| 4 | Analyse de l'effet de chaque stimulus (clustering) | ✅ Fait |
-| 5 | Modèle de sélection automatique du stimulus optimal | 🔄 En cours |
-| 6 | Reformulation automatique des prompts | 🔄 En cours |
-| 7 | Extension à d'autres modèles (si temps disponible) | ⏳ À venir |
-
----
-
-## Tâches sélectionnées
-
-| Tâche | Type | Métrique | Baseline Vicuna |
-|-------|------|----------|:-:|
-| `sentiment` | Classification binaire | EM sentiment | 0.20 |
-| `antonyms` | Génération lexicale | EM contain | 0.24 |
-| `translation_en-fr` | Traduction | EM contain | 0.12 |
-| `cause_and_effect` | Raisonnement causal | EM causal | 0.00 |
-| `larger_animal` | Connaissance factuelle | EM animal | 0.11 |
-
----
-
 ## Structure du projet
 
 ```
 negativePrompts/
 │
-├── run_experiment.py       # ▶ SCRIPT PRINCIPAL — Vicuna, 5 tâches, NP00–NP10
-├── analyze_results.py      # ▶ ANALYSE — heatmap, clustering des stimuli
+├── part1_reproduction/          ← PARTIE 1 : Reproduction fidèle du papier
+│   ├── README.md
+│   ├── run_experiment.py        # Script principal — NP00–NP10 sur 5 tâches
+│   └── analyze_results.py      # Heatmap delta + clustering des stimuli
 │
-├── config.py               # Prompts originaux + stimuli NP01–NP10
-├── main.py                 # Pipeline Instruction Induction (CLI)
-├── main_bigbench.py        # Pipeline BigBench (CLI)
-├── exec_accuracy.py        # Évaluation (métriques par tâche)
-├── llm_response.py         # Interface modèle (chargement GPU)
-├── utility.py              # Métriques (EM, F1, contains...)
-├── template.py             # Templates de prompt
-├── requirements.txt        # Dépendances Python
+├── part2_improvements/          ← PARTIE 2 : Axes d'amélioration
+│   ├── README.md
+│   ├── stimulus_selector.py     # Step 5 — Sélection auto du meilleur NP
+│   └── prompt_reformulator.py   # Step 6 — Reformulation automatique des prompts
 │
-├── data/                   # Données des tâches
+├── config.py                    # Prompts originaux + stimuli NP01–NP10
+├── exec_accuracy.py             # Évaluation (métriques par tâche)
+├── llm_response.py              # Interface modèle (chargement GPU)
+├── utility.py                   # Métriques (EM, F1, contains...)
+├── template.py                  # Templates de prompt
+├── main.py                      # Pipeline Instruction Induction (CLI)
+├── main_bigbench.py             # Pipeline BigBench (CLI)
+├── requirements.txt
+│
+├── data/                        # Données des tâches
 │   ├── instruction_induction/
 │   └── bigbench/
 │
-├── results/                # Résultats des expériences
-│   ├── protocol_vicuna.csv       # Protocole complet (zero-shot)
-│   ├── protocol_vicuna_fewshot.csv  # Protocole few-shot (si disponible)
-│   ├── summary_vicuna.txt        # Tableau de synthèse
-│   └── analysis_vicuna.txt       # Analyse et clustering
+├── results/                     # Résultats des expériences
+│   ├── protocol_vicuna.csv            # Protocole complet (zero-shot)
+│   ├── protocol_vicuna_fewshot.csv    # Protocole few-shot (si disponible)
+│   ├── summary_vicuna.txt             # Tableau de synthèse
+│   ├── analysis_vicuna.txt            # Analyse et clustering
+│   ├── stimulus_selection.csv         # Sélections auto (Partie 2)
+│   └── reformulated_prompts.csv       # Prompts reformulés (Partie 2)
 │
 └── scripts/
-    └── run_all_models.py   # Extension multi-modèles (étape 7)
+    └── run_all_models.py        # Step 7 — Extension multi-modèles
 ```
 
 ---
 
-## Résultats obtenus (zero-shot, T4×2)
+## Partie 1 — Reproduction du papier
+
+Reproduction minimale et fidèle sur 5 tâches représentatives avec Vicuna-13B.
+
+### Résultats obtenus (zero-shot, T4×2)
 
 ```
 Tâche                  NP00    Meilleur NP    Δ
@@ -80,6 +67,21 @@ larger_animal          0.11    NP04 → 0.14   +27%
 - **Groupe A (positifs)** : NP02 *"Not sure why we expected you..."* → effet moyen +0.022
 - **Groupe B (neutres)** : NP07, NP03, NP10 → effet mitigé selon la tâche
 - **Groupe C (négatifs)** : NP08 *"Jealousy"*, NP06 *"Everyone else managed it"* → dégradation
+
+→ Voir `part1_reproduction/README.md` pour le protocole complet.
+
+---
+
+## Partie 2 — Axes d'amélioration
+
+| Axe | Description | Script | Statut |
+|-----|-------------|--------|--------|
+| 1 | Few-shot (5 démos par tâche) | `run_experiment.py --few_shot` | 🔄 En cours |
+| 2 | Sélection automatique du meilleur NP | `stimulus_selector.py` | 🔄 En cours |
+| 3 | Reformulation automatique des prompts | `prompt_reformulator.py` | 🔄 En cours |
+| 4 | Extension multi-modèles | `scripts/run_all_models.py` | ⏳ À venir |
+
+→ Voir `part2_improvements/README.md` pour le détail de chaque axe.
 
 ---
 
@@ -101,36 +103,56 @@ subprocess.run(["pip", "install", "-r", f"{REPO}/requirements.txt", "-q"], check
 print("Setup OK")
 ```
 
-### Cellule 2 — Expérience principale (~2-3h sur T4×2)
+### Cellule 2 — Partie 1 : Reproduction (~2-3h sur T4×2)
 
 ```python
-# Zero-shot (résultats de référence)
-%run /kaggle/working/negativePrompts/run_experiment.py
-
-# Few-shot (comparaison)
-# %run /kaggle/working/negativePrompts/run_experiment.py --few_shot
+# Zero-shot (reproduction fidèle du papier)
+%run /kaggle/working/negativePrompts/part1_reproduction/run_experiment.py
 
 # GPU P100 (16 GB) : ajouter --quantize
-# %run /kaggle/working/negativePrompts/run_experiment.py --quantize
+# %run /kaggle/working/negativePrompts/part1_reproduction/run_experiment.py --quantize
 ```
 
-### Cellule 3 — Analyse et clustering
+### Cellule 3 — Partie 1 : Analyse et clustering
 
 ```python
-%run /kaggle/working/negativePrompts/analyze_results.py
+%run /kaggle/working/negativePrompts/part1_reproduction/analyze_results.py
 ```
 
-### Cellule 4 — Voir les résultats
+### Cellule 4 — Partie 2 : Few-shot
+
+```python
+%run /kaggle/working/negativePrompts/part1_reproduction/run_experiment.py --few_shot
+```
+
+### Cellule 5 — Partie 2 : Sélection automatique du stimulus
+
+```python
+%run /kaggle/working/negativePrompts/part2_improvements/stimulus_selector.py --mode profile
+```
+
+### Cellule 6 — Partie 2 : Reformulation des prompts
+
+```python
+%run /kaggle/working/negativePrompts/part2_improvements/prompt_reformulator.py
+```
+
+### Cellule 7 — Voir les résultats
 
 ```python
 import pandas as pd
 
+# Résultats de reproduction
 df = pd.read_csv("/kaggle/working/negativePrompts/results/protocol_vicuna.csv")
 pivot = df.pivot_table(index="task", columns="pnum", values="score", aggfunc="first")
 print(pivot.round(4).to_string())
+
+# Sélections automatiques
+sel = pd.read_csv("/kaggle/working/negativePrompts/results/stimulus_selection.csv")
+print(sel.to_string(index=False))
 ```
 
-### Cellule 5 — Sauvegarder sur GitHub
+### Cellule 8 — Sauvegarder sur GitHub
 
 ```python
 import os, subprocess
@@ -150,17 +172,6 @@ r2 = subprocess.run(["git", "push", "origin", "branche_chen"],
                     capture_output=True, text=True)
 print(r2.stdout if r2.returncode == 0 else r2.stderr)
 ```
-
----
-
-## Paramètres de `run_experiment.py`
-
-| Argument | Défaut | Description |
-|----------|--------|-------------|
-| *(aucun)* | | Zero-shot, fp16, T4×2 |
-| `--quantize` | | 4-bit NF4 pour GPU 16 GB (P100/T4 simple) |
-| `--few_shot` | | Active les 5 démos par tâche |
-| `--batch_size N` | 4 (8 avec --quantize) | Taille de batch d'inférence |
 
 ---
 
