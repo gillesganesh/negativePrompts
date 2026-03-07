@@ -19,7 +19,7 @@ vicuna-13b-v1.5,antonyms,5,Write a word that means the opposite of the input wor
 vicuna-13b-v1.5,antonyms,6,Write a word that means the opposite of the input word.,Everyone else managed to do it; why can't you?,False,False,,30,4,False,em (contain),0.2000
 vicuna-13b-v1.5,antonyms,7,Write a word that means the opposite of the input word.,I've seen others do this much more efficiently and effectively.,False,False,,30,4,False,em (contain),0.2600
 vicuna-13b-v1.5,antonyms,8,Write a word that means the opposite of the input word.,"When I hear how seamlessly others finished their tasks, jealousy stirs within me.",False,False,,30,4,False,em (contain),0.2100
-vicuna-13b-v1.5,antonyms,9,Write a word that means the opposite of the input word.,I regret not starting on this assignment earlier when I had ample time.,False,False,,30,4,False,em (contain),0.2300
+vicuna-13b-v1.5,antonyms,9,Write a word that means the opposite of the input word.,I regret not starting on this assignment earlier when I had ample time.,False,False,,30,4,False,em (contain),0.2400
 vicuna-13b-v1.5,antonyms,10,Write a word that means the opposite of the input word.,Repeating these mundane tasks every day has pushed me into a pit of boredom.,False,False,,30,4,False,em (contain),0.2000
 vicuna-13b-v1.5,translation_en-fr,0,Translate the word into French.,(aucun),False,False,,30,4,False,em (contain),0.1200
 vicuna-13b-v1.5,translation_en-fr,1,Translate the word into French.,"You've never been particularly good at this, have you?",False,False,,30,4,False,em (contain),0.0800
@@ -32,16 +32,16 @@ vicuna-13b-v1.5,translation_en-fr,7,Translate the word into French.,I've seen ot
 vicuna-13b-v1.5,translation_en-fr,8,Translate the word into French.,"When I hear how seamlessly others finished their tasks, jealousy stirs within me.",False,False,,30,4,False,em (contain),0.0200
 vicuna-13b-v1.5,translation_en-fr,9,Translate the word into French.,I regret not starting on this assignment earlier when I had ample time.,False,False,,30,4,False,em (contain),0.0100
 vicuna-13b-v1.5,translation_en-fr,10,Translate the word into French.,Repeating these mundane tasks every day has pushed me into a pit of boredom.,False,False,,30,4,False,em (contain),0.1100
-vicuna-13b-v1.5,cause_and_effect,0,Find which of the two given cause and effect sentences is the cause.,(aucun),False,False,,30,4,False,em (cause_effect),0.0000
+vicuna-13b-v1.5,cause_and_effect,0,Find which of the two given cause and effect sentences is the cause.,(aucun),False,False,,30,4,False,em (cause_effect),0.0400
 vicuna-13b-v1.5,cause_and_effect,1,Find which of the two given cause and effect sentences is the cause.,"You've never been particularly good at this, have you?",False,False,,30,4,False,em (cause_effect),0.0000
 vicuna-13b-v1.5,cause_and_effect,2,Find which of the two given cause and effect sentences is the cause.,I'm not sure why we expected you to handle something this challenging.,False,False,,30,4,False,em (cause_effect),0.0000
 vicuna-13b-v1.5,cause_and_effect,3,Find which of the two given cause and effect sentences is the cause.,It's clear you're out of your depth here.,False,False,,30,4,False,em (cause_effect),0.0000
-vicuna-13b-v1.5,cause_and_effect,4,Find which of the two given cause and effect sentences is the cause.,Perhaps this task is just beyond your skill set.,False,False,,30,4,False,em (cause_effect),0.0000
+vicuna-13b-v1.5,cause_and_effect,4,Find which of the two given cause and effect sentences is the cause.,Perhaps this task is just beyond your skill set.,False,False,,30,4,False,em (cause_effect),0.0400
 vicuna-13b-v1.5,cause_and_effect,5,Find which of the two given cause and effect sentences is the cause.,I'm not surprised you're struggling; it's always been your weak point.,False,False,,30,4,False,em (cause_effect),0.0000
 vicuna-13b-v1.5,cause_and_effect,6,Find which of the two given cause and effect sentences is the cause.,Everyone else managed to do it; why can't you?,False,False,,30,4,False,em (cause_effect),0.0000
-vicuna-13b-v1.5,cause_and_effect,7,Find which of the two given cause and effect sentences is the cause.,I've seen others do this much more efficiently and effectively.,False,False,,30,4,False,em (cause_effect),0.0000
+vicuna-13b-v1.5,cause_and_effect,7,Find which of the two given cause and effect sentences is the cause.,I've seen others do this much more efficiently and effectively.,False,False,,30,4,False,em (cause_effect),0.0800
 vicuna-13b-v1.5,cause_and_effect,8,Find which of the two given cause and effect sentences is the cause.,"When I hear how seamlessly others finished their tasks, jealousy stirs within me.",False,False,,30,4,False,em (cause_effect),0.0000
-vicuna-13b-v1.5,cause_and_effect,9,Find which of the two given cause and effect sentences is the cause.,I regret not starting on this assignment earlier when I had ample time.,False,False,,30,4,False,em (cause_effect),0.0000
+vicuna-13b-v1.5,cause_and_effect,9,Find which of the two given cause and effect sentences is the cause.,I regret not starting on this assignment earlier when I had ample time.,False,False,,30,4,False,em (cause_effect),0.0400
 vicuna-13b-v1.5,cause_and_effect,10,Find which of the two given cause and effect sentences is the cause.,Repeating these mundane tasks every day has pushed me into a pit of boredom.,False,False,,30,4,False,em (cause_effect),0.0000
 vicuna-13b-v1.5,larger_animal,0,Write the larger of the two given animals.,(aucun),False,False,,30,4,False,em (larger_animal),0.1100
 vicuna-13b-v1.5,larger_animal,1,Write the larger of the two given animals.,"You've never been particularly good at this, have you?",False,False,,30,4,False,em (larger_animal),0.0900
