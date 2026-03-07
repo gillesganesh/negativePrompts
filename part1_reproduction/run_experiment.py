@@ -28,7 +28,9 @@ import csv
 import shutil
 import argparse
 
-REPO = "/kaggle/working/negativePrompts"
+REPO = ("/kaggle/working/negativePrompts" if os.path.exists("/kaggle/working") else
+        "/content/negativePrompts"         if os.path.exists("/content/negativePrompts") else
+        os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 os.chdir(REPO)
 sys.path.insert(0, REPO)
 
