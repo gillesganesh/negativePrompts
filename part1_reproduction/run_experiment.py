@@ -141,12 +141,13 @@ def make_vicuna_infer(model, tokenizer):
                 f"USER: {q}\nASSISTANT:"
                 for q in batch
             ]
+            max_ctx = 1024 if INFER_PARAMS["few_shot"] else 512
             enc = tokenizer(
                 vicuna_batch,
                 return_tensors="pt",
                 padding=True,
                 truncation=True,
-                max_length=512,
+                max_length=max_ctx,
             )
             input_len = enc["input_ids"].shape[1]
             ids  = enc["input_ids"].to("cuda:0")
