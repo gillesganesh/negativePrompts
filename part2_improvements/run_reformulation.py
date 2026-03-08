@@ -326,9 +326,40 @@ def load_p1_results():
     return p1
 
 
+# ─── Nettoyage GPU ───────────────────────────────────────────────────────────
+def free_gpu():
+    """Libère toute la mémoire GPU avant de charger le modèle."""
+    import gc, torch
+
+    # Supprimer les références globales au modèle laissées par %run précédents
+    import builtins
+    for var in ["model", "tokenizer", "mdl", "tok", "infer_fn"]:
+        if var in globals():
+            del globals()[var]
+        # Aussi dans __main__ si lancé via %run Jupyter
+        try:
+            import __main__
+            if hasattr(__main__, var):
+                delattr(__main__, var)
+        except Exception:
+            pass
+
+    gc.collect()
+    if torch.cuda.is_available():
+        torch.cuda.empty_cache()
+        torch.cuda.synchronize()
+        for i in range(torch.cuda.device_count()):
+            free, total = torch.cuda.mem_get_info(i)
+            print(f"GPU {i} après nettoyage : {free/1e9:.1f}GB free / {total/1e9:.1f}GB total")
+
+
 # ─── Point d'entrée ──────────────────────────────────────────────────────────
 def main():
     import config
+
+    # Nettoyage GPU avant tout chargement
+    print("Nettoyage mémoire GPU...")
+    free_gpu()
 
     # Chargement sélection et résultats P1
     selections = load_selections()
